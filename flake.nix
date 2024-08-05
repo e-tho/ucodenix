@@ -37,7 +37,7 @@
         };
       };
 
-      ucodenix = { serial }: pkgs.stdenv.mkDerivation rec {
+      ucodenix = { cpuSerialNumber }: pkgs.stdenv.mkDerivation rec {
         pname = "ucodenix";
         version = "1.0.0";
 
@@ -52,7 +52,7 @@
 
         unpackPhase = ''
           mkdir -p $out
-          serialResult=$(echo "${serial}" | sed 's/.* = //;s/-0000.*//;s/-//')
+          serialResult=$(echo "${cpuSerialNumber}" | sed 's/.* = //;s/-0000.*//;s/-//')
           microcodeFile=$(find $src/AMD -name "cpu$serialResult*.bin" | head -n 1)
           cp $microcodeFile $out/$(basename $microcodeFile) || (echo "File not found: $microcodeFile" && exit 1)
         '';
@@ -89,7 +89,7 @@
           options.services.ucodenix = {
             enable = lib.mkEnableOption "ucodenix service";
 
-            serial = lib.mkOption {
+            cpuSerialNumber = lib.mkOption {
               type = lib.types.str;
               default = "";
               description = "The processor's serial number, used to determine the appropriate microcode binary file.";
@@ -98,7 +98,7 @@
 
           config = lib.mkIf cfg.enable {
             environment.systemPackages = with pkgs; [
-              (ucodenix { serial = cfg.serial; })
+              (ucodenix { cpuSerialNumber = cfg.cpuSerialNumber; })
             ];
 
             nixpkgs.overlays = [
@@ -106,7 +106,7 @@
                 microcodeAmd = prev.microcodeAmd.overrideAttrs (oldAttrs: rec {
                   buildPhase = ''
                     mkdir -p kernel/x86/microcode
-                    cp ${ucodenix { serial = cfg.serial; }}/kernel/x86/microcode/AuthenticAMD.bin kernel/x86/microcode/AuthenticAMD.bin
+                    cp ${ucodenix { cpuSerialNumber = cfg.cpuSerialNumber; }}/kernel/x86/microcode/AuthenticAMD.bin kernel/x86/microcode/AuthenticAMD.bin
                   '';
                 });
               })

@@ -45,7 +45,7 @@
           owner = "platomav";
           repo = "CPUMicrocodes";
           rev = "refs/heads/master";
-          sha256 = "J7lXxo0MHAghlGlsbliSXvaOSSxiSRpP9TJmUm8eWb0=";
+          sha256 = "1gar3rpm4rijym7iljb25i4qxxjyj9c6wv39jhhhh70cip35gf97";
         };
 
         buildInputs = [ amdUcodegen ];

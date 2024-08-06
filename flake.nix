@@ -44,7 +44,7 @@
         src = pkgs.fetchFromGitHub {
           owner = "platomav";
           repo = "CPUMicrocodes";
-          rev = "e605d60009ab1af7d1cd2d08c2e235ab09ffeaf1";
+          rev = "refs/heads/master";
           sha256 = "J7lXxo0MHAghlGlsbliSXvaOSSxiSRpP9TJmUm8eWb0=";
         };
 

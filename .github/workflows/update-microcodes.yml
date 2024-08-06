@@ -1,0 +1,63 @@
+name: Update Microcodes
+
+on:
+  schedule:
+    - cron: "0 0 * * 1" # Runs every Monday at midnight
+  workflow_dispatch: # Allows manual trigger of the workflow
+
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  update-microcodes:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v27
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+
+      - name: Install dependencies
+        run: |
+          nix-env -iA nix-prefetch-git -f '<nixpkgs>'
+          nix-env -iA jq -f '<nixpkgs>'
+
+      - name: Setup git
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Update flake.nix
+        run: |
+          SHA256_HASH=$(nix-prefetch-git https://github.com/platomav/CPUMicrocodes --rev refs/heads/master | jq -r .sha256)
+          echo "Fetched SHA256: $SHA256_HASH"
+          if ! grep -q 'sha256 = \"$SHA256_HASH\";' flake.nix; then
+            sed -i '/owner = \"platomav\"/{n;n;n;s/sha256 = \".*\";/sha256 = \"'$SHA256_HASH'\";/}' flake.nix
+            git add flake.nix
+            git commit -m "Update microcodes"
+          else
+            echo "No changes to commit"
+          fi
+
+      - name: Update flake.lock
+        run: |
+          nix flake update --commit-lock-file --commit-lockfile-summary "Update inputs"
+          if [ ! -z "$(git ls-files --others)" ] || ! (git diff-index --quiet HEAD --); then
+            git add flake.lock
+            git commit -m "Update flake.lock"
+          fi
+
+      - name: Create PR
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: update-microcodes
+          delete-branch: true
+          committer: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
+          author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
+          title: "Update microcodes to latest hash"
+          body: "This PR updates the microcodes to the latest hash from the CPUMicrocodes repository."

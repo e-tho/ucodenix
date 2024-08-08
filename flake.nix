@@ -18,11 +18,9 @@
           sha256 = "pgmxzd8tLqdQ8Kmmhl05C5tMlCByosSrwx2QpBu3UB0=";
         };
 
-        buildInputs = [ pkgs.gcc ];
-
         nativeBuildInputs = [ pkgs.makeWrapper ];
 
-        buildPhase = "make";
+        makeTarget = "";
 
         installPhase = ''
           mkdir -p $out/bin
@@ -32,7 +30,7 @@
         meta = with pkgs.lib; {
           description = "This tool generates AMD microcode containers as used by the Linux kernel.";
           homepage = "https://github.com/AndyLavr/amd-ucodegen";
-          license = licenses.gpl2;
+          license = licenses.gpl2Only;
           platforms = platforms.linux;
         };
       };
@@ -48,7 +46,7 @@
           sha256 = "1gar3rpm4rijym7iljb25i4qxxjyj9c6wv39jhhhh70cip35gf97";
         };
 
-        buildInputs = [ amdUcodegen ];
+        nativeBuildInputs = [ amdUcodegen ];
 
         unpackPhase = ''
           mkdir -p $out
@@ -60,7 +58,7 @@
         buildPhase = ''
           mkdir -p $out/kernel/x86/microcode
           microcodeFile=$(find $out -name "cpu*.bin" | head -n 1)
-          ${amdUcodegen}/bin/amd-ucodegen $microcodeFile
+          amd-ucodegen $microcodeFile
           mv microcode_amd*.bin $out/kernel/x86/microcode/AuthenticAMD.bin
         '';
 
@@ -91,7 +89,6 @@
 
             cpuSerialNumber = lib.mkOption {
               type = lib.types.str;
-              default = "";
               description = "The processor's serial number, used to determine the appropriate microcode binary file.";
             };
           };

@@ -34,10 +34,18 @@ jobs:
 
       - name: Update flake.nix
         run: |
-          SHA256_HASH=$(nix-prefetch-git https://github.com/platomav/CPUMicrocodes --rev refs/heads/master | jq -r .sha256)
-          echo "Fetched SHA256: $SHA256_HASH"
-          if ! grep -q 'sha256 = \"$SHA256_HASH\";' flake.nix; then
-            sed -i '/owner = \"platomav\"/{n;n;n;s/sha256 = \".*\";/sha256 = \"'$SHA256_HASH'\";/}' flake.nix
+          OUTPUT=$(nix-prefetch-git --quiet https://github.com/platomav/CPUMicrocodes --rev refs/heads/master)
+
+          REV=$(echo "$OUTPUT" | jq -r .rev)
+          HASH=$(echo "$OUTPUT" | jq -r .sha256)
+
+          echo "Fetched rev: $REV"
+          echo "Fetched hash: $HASH"
+
+          if ! grep -q "rev = \"$REV\";" flake.nix || ! grep -q "hash = \"$HASH\";" flake.nix; then
+            sed -i '/owner = "platomav"/{n;n;s/rev = ".*";/rev = "'"$REV"'";/}' flake.nix
+            sed -i '/owner = "platomav"/{n;n;n;s/hash = ".*";/hash = "sha256-'"$HASH"'";/}' flake.nix
+
             git add flake.nix
             git commit -m "Update microcodes"
           else

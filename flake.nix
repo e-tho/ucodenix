@@ -7,34 +7,6 @@
     let
       pkgs = import nixpkgs { system = "x86_64-linux"; };
 
-      amdUcodegen = pkgs.stdenv.mkDerivation rec {
-        pname = "amd-ucodegen";
-        version = "1.0.0";
-
-        src = pkgs.fetchFromGitHub {
-          owner = "AndyLavr";
-          repo = "amd-ucodegen";
-          rev = "0d34b54e396ef300d0364817e763d2c7d1ffff02";
-          sha256 = "pgmxzd8tLqdQ8Kmmhl05C5tMlCByosSrwx2QpBu3UB0=";
-        };
-
-        nativeBuildInputs = [ pkgs.makeWrapper ];
-
-        makeTarget = "";
-
-        installPhase = ''
-          mkdir -p $out/bin
-          cp amd-ucodegen $out/bin/
-        '';
-
-        meta = with pkgs.lib; {
-          description = "This tool generates AMD microcode containers as used by the Linux kernel.";
-          homepage = "https://github.com/AndyLavr/amd-ucodegen";
-          license = licenses.gpl2Only;
-          platforms = platforms.linux;
-        };
-      };
-
       ucodenix = { cpuSerialNumber }: pkgs.stdenv.mkDerivation rec {
         pname = "ucodenix";
         version = "1.0.0";
@@ -42,11 +14,11 @@
         src = pkgs.fetchFromGitHub {
           owner = "platomav";
           repo = "CPUMicrocodes";
-          rev = "refs/heads/master";
-          sha256 = "1gar3rpm4rijym7iljb25i4qxxjyj9c6wv39jhhhh70cip35gf97";
+          rev = "e605d60009ab1af7d1cd2d08c2e235ab09ffeaf1";
+          hash = "sha256-J7lXxo0MHAghlGlsbliSXvaOSSxiSRpP9TJmUm8eWb0=";
         };
 
-        nativeBuildInputs = [ amdUcodegen ];
+        nativeBuildInputs = [ pkgs.amd-ucodegen ];
 
         unpackPhase = ''
           mkdir -p $out
@@ -71,8 +43,6 @@
 
     in
     {
-      packages.x86_64-linux.amd-ucodegen = amdUcodegen;
-
       nixosModules.ucodenix =
         { config
         , lib

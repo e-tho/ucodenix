@@ -47,7 +47,11 @@ jobs:
             sed -i '/owner = "platomav"/{n;n;n;s/hash = ".*";/hash = "sha256-'"$HASH"'";/}' flake.nix
 
             git add flake.nix
-            git commit -m "Update microcodes"
+            if git diff --staged --quiet; then
+              echo "No changes to commit"
+            else
+              git commit -m "Update microcodes"
+            fi
           else
             echo "No changes to commit"
           fi

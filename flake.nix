@@ -15,7 +15,7 @@
           owner = "platomav";
           repo = "CPUMicrocodes";
           rev = "e605d60009ab1af7d1cd2d08c2e235ab09ffeaf1";
-          hash = "sha256-J7lXxo0MHAghlGlsbliSXvaOSSxiSRpP9TJmUm8eWb0=";
+          hash = "sha256-1gar3rpm4rijym7iljb25i4qxxjyj9c6wv39jhhhh70cip35gf97";
         };
 
         nativeBuildInputs = [ pkgs.amd-ucodegen ];

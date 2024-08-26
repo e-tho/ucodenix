@@ -43,8 +43,8 @@ jobs:
           echo "Fetched hash: $HASH"
 
           if ! grep -q "rev = \"$REV\";" flake.nix || ! grep -q "hash = \"$HASH\";" flake.nix; then
-            sed -i '/owner = "platomav"/{n;n;s/rev = ".*";/rev = "'"$REV"'";/}' flake.nix
-            sed -i '/owner = "platomav"/{n;n;n;s/hash = ".*";/hash = "'"$HASH"'";/}' flake.nix
+            sed -i '/owner = "platomav"/{n;n;s|rev = ".*";|rev = "'"$REV"'";|}' flake.nix
+            sed -i '/owner = "platomav"/{n;n;n;s|hash = ".*";|hash = "'"$HASH"'";|}' flake.nix
 
             git add flake.nix
             if git diff --staged --quiet; then

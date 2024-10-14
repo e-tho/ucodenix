@@ -14,8 +14,8 @@
         src = pkgs.fetchFromGitHub {
           owner = "platomav";
           repo = "CPUMicrocodes";
-          rev = "c04d9eac86575f7b2d96f24bcec671e275684113";
-          hash = "sha256-YPsXgVfGYBMOSr36PiDiiXPKTgEiEiaEdj9L20JLljQ=";
+          rev = "0c56770734fe961b1801b5362ad96d05c1130cbe";
+          hash = "sha256-NM6B1gvTbGhIi/EZYL0bhiwkZ3YFHG7bHtsPvMfhZcU=";
         };
 
         nativeBuildInputs = [ pkgs.amd-ucodegen ];

@@ -43,7 +43,7 @@
 
     in
     {
-      nixosModules.ucodenix =
+      nixosModules.default =
         { config
         , lib
         , pkgs
@@ -85,5 +85,7 @@
             ];
           };
         };
+
+      nixosModules.ucodenix = self.nixosModules.default;
     };
 }

@@ -19,7 +19,7 @@
 Add the flake as an input:
 
 ```nix
-ucodenix.url = "github:e-tho/ucodenix";
+inputs.ucodenix.url = "github:e-tho/ucodenix";
 ```
 
 ## Usage

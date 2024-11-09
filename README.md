@@ -24,23 +24,14 @@ ucodenix.url = "github:e-tho/ucodenix";
 
 ## Usage
 
-Install `cpuid` and run the following command to retrieve your processor's serial number:
-
-```shell
-cpuid | sed -n 's/^.*processor serial number = //p' | head -n1
-```
-
-Enable the NixOS module and set your processor's serial number:
+Enable the NixOS module by adding the following to your configuration:
 
 ```nix
 { inputs, ... }:
 {
   imports = [ inputs.ucodenix.nixosModules.ucodenix ];
 
-  services.ucodenix = {
-    enable = true;
-    cpuSerialNumber = "00A2-0F12-0000-0000-0000-0000"; # Replace with your processor's serial number
-  };
+  services.ucodenix.enable = true;
 }
 
 ```

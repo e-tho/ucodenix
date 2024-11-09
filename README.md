@@ -29,7 +29,7 @@ Enable the NixOS module by adding the following to your configuration:
 ```nix
 { inputs, ... }:
 {
-  imports = [ inputs.ucodenix.nixosModules.ucodenix ];
+  imports = [ inputs.ucodenix.nixosModules.default ];
 
   services.ucodenix.enable = true;
 }

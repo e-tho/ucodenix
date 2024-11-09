@@ -22,7 +22,7 @@
 
         unpackPhase = ''
           mkdir -p $out
-          serialResult=$(cpuid -1 -l 1 -r | sed -n 's/^ *0x00000001 0x00: eax=0x\([0-9a-f]*\).*/\U\1/p')
+          serialResult=$(cpuid -1 -l 1 -r | sed -n 's/.*eax=0x\([0-9a-f]*\).*/\U\1/p')
           microcodeFile=$(find $src/AMD -name "cpu$serialResult*.bin" | head -n 1)
           cp $microcodeFile $out/$(basename $microcodeFile) || (echo "File not found: $microcodeFile" && exit 1)
         '';

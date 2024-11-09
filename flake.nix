@@ -7,7 +7,7 @@
     let
       pkgs = import nixpkgs { system = "x86_64-linux"; };
 
-      ucodenix = { cpuSerialNumber }: pkgs.stdenv.mkDerivation rec {
+      ucodenix = pkgs.stdenv.mkDerivation rec {
         pname = "ucodenix";
         version = "1.0.0";
 
@@ -18,11 +18,11 @@
           hash = "sha256-cpFAvnLg0OSH+sa0EkojovGRui5joV2cDcFEd2Rnqts=";
         };
 
-        nativeBuildInputs = [ pkgs.amd-ucodegen ];
+        nativeBuildInputs = with pkgs; [ amd-ucodegen cpuid ];
 
         unpackPhase = ''
           mkdir -p $out
-          serialResult=$(echo "${cpuSerialNumber}" | sed 's/.* = //;s/-0000.*//;s/-//')
+          serialResult=$(cpuid -1 -l 1 -r | sed -n 's/^ *0x00000001 0x00: eax=0x\([0-9a-f]*\).*/\U\1/p')
           microcodeFile=$(find $src/AMD -name "cpu$serialResult*.bin" | head -n 1)
           cp $microcodeFile $out/$(basename $microcodeFile) || (echo "File not found: $microcodeFile" && exit 1)
         '';
@@ -58,14 +58,15 @@
             enable = lib.mkEnableOption "ucodenix service";
 
             cpuSerialNumber = lib.mkOption {
-              type = lib.types.str;
-              description = "The processor's serial number, used to determine the appropriate microcode binary file.";
+              type = lib.types.nullOr lib.types.str;
+              default = null;
+              description = "The processor's serial number, used to determine the appropriate microcode binary file (deprecated).";
             };
           };
 
           config = lib.mkIf cfg.enable {
             environment.systemPackages = with pkgs; [
-              (ucodenix { cpuSerialNumber = cfg.cpuSerialNumber; })
+              ucodenix
             ];
 
             nixpkgs.overlays = [
@@ -73,10 +74,14 @@
                 microcodeAmd = prev.microcodeAmd.overrideAttrs (oldAttrs: rec {
                   buildPhase = ''
                     mkdir -p kernel/x86/microcode
-                    cp ${ucodenix { cpuSerialNumber = cfg.cpuSerialNumber; }}/kernel/x86/microcode/AuthenticAMD.bin kernel/x86/microcode/AuthenticAMD.bin
+                    cp ${ucodenix}/kernel/x86/microcode/AuthenticAMD.bin kernel/x86/microcode/AuthenticAMD.bin
                   '';
                 });
               })
+            ];
+
+            warnings = lib.optionals (cfg.cpuSerialNumber != null) [
+              "ucodenix: The `services.ucodenix.cpuSerialNumber` option is deprecated and can be removed; the processor's serial number is now determined automatically."
             ];
           };
         };

@@ -9,7 +9,7 @@
 
       ucodenix = pkgs.stdenv.mkDerivation rec {
         pname = "ucodenix";
-        version = "1.0.0";
+        version = "1.1.0";
 
         src = pkgs.fetchFromGitHub {
           owner = "platomav";

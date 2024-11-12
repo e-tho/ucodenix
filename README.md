@@ -25,23 +25,27 @@ inputs.ucodenix.url = "github:e-tho/ucodenix";
 
 ## Usage
 
-Enable the NixOS module by adding the following to your configuration:
+Install `cpuid` and run the following command to retrieve your processor's model ID:
+
+```shell
+cpuid -1 -l 1 -r | sed -n 's/.*eax=0x\([0-9a-f]*\).*/\U\1/p'
+```
+
+Enable the ucodenix NixOS module and set the model ID in your configuration:
 
 ```nix
 { inputs, ... }:
 {
   imports = [ inputs.ucodenix.nixosModules.default ];
 
-  services.ucodenix.enable = true;
+  services.ucodenix = {
+    enable = true;
+    cpuModelId = "00A20F12"; # Replace with your processor's model ID
+  };
 }
-
 ```
 
-Rebuild your NixOS configuration:
-
-```sh
-sudo nixos-rebuild switch
-```
+Setting `cpuModelId` to `"auto"` enables automatic detection of the CPU model ID at build time. Note that this makes the build non-reproducible, so specifying `cpuModelId` manually is recommended.
 
 ## FAQ
 

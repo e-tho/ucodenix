@@ -69,12 +69,6 @@
               example = "\"00A20F12\" or \"auto\"";
               description = "The CPU model ID used to determine the appropriate microcode binary file. Set to \"auto\" to automatically detect the model ID.";
             };
-
-            cpuSerialNumber = lib.mkOption {
-              type = lib.types.nullOr lib.types.str;
-              default = null;
-              description = "The processor's serial number, used to determine the appropriate microcode binary file (deprecated).";
-            };
           };
 
           config = lib.mkIf cfg.enable {
@@ -95,25 +89,22 @@
             hardware.cpu.amd.updateMicrocode = true;
 
             assertions = lib.concatLists [
-              (lib.optionals (cfg.cpuModelId == "" && cfg.cpuSerialNumber == null) [
+              (lib.optionals (cfg.cpuModelId == "") [
                 {
                   assertion = false;
                   message = "The `ucodenix.cpuModelId` option is required. Please refer to the documentation to obtain your CPU model ID.";
                 }
               ])
-
-              (lib.optionals (cfg.cpuModelId == "" && cfg.cpuSerialNumber != null) [
-                {
-                  assertion = false;
-                  message = "The `ucodenix.cpuSerialNumber` option is deprecated and has been replaced by `cpuModelId`, which uses a different format. Please refer to the documentation to obtain your `cpuModelId`.";
-                }
-              ])
-            ];
+           ];
 
             warnings = lib.optionals (cfg.cpuModelId == "auto") [
               "ucodenix: Setting `cpuModelId` to \"auto\" results in a non-reproducible build."
             ];
           };
+
+          imports = [
+            (lib.mkRemovedOptionModule [ "services" "ucodenix" "cpuSerialNumber" ] "Please use `ucodenix.cpuModelId` instead.")
+          ];
         };
 
       nixosModules.ucodenix = self.nixosModules.default;

@@ -65,7 +65,6 @@
 
             cpuModelId = lib.mkOption {
               type = lib.types.str;
-              default = "";
               example = "\"00A20F12\" or \"auto\"";
               description = "The CPU model ID used to determine the appropriate microcode binary file. Set to \"auto\" to automatically detect the model ID.";
             };
@@ -87,15 +86,6 @@
 
             # we overwrote the package used in this option
             hardware.cpu.amd.updateMicrocode = true;
-
-            assertions = lib.concatLists [
-              (lib.optionals (cfg.cpuModelId == "") [
-                {
-                  assertion = false;
-                  message = "The `ucodenix.cpuModelId` option is required. Please refer to the documentation to obtain your CPU model ID.";
-                }
-              ])
-           ];
 
             warnings = lib.optionals (cfg.cpuModelId == "auto") [
               "ucodenix: Setting `cpuModelId` to \"auto\" results in a non-reproducible build."

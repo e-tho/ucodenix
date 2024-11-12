@@ -1,9 +1,7 @@
 {
   description = "ucodenix flake";
 
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-
-  outputs = { self, nixpkgs, ... }:
+  outputs = { self, ... }:
     let
       ucodenix =
       { stdenv

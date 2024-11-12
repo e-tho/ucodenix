@@ -51,7 +51,6 @@
       nixosModules.default =
         { config
         , lib
-        , pkgs
         , ...
         }:
 
@@ -77,26 +76,19 @@
           };
 
           config = lib.mkIf cfg.enable {
-            environment.systemPackages = with pkgs; [
-              (ucodenix cfg.cpuModelId)
-            ];
-
             nixpkgs.overlays = [
               (final: prev: {
-                microcode-amd = prev.microcode-amd.overrideAttrs (oldAttrs: rec {
+                microcode-amd = prev.microcode-amd.overrideAttrs (oldAttrs: {
                   buildPhase = ''
                     mkdir -p kernel/x86/microcode
-                    cp ${(ucodenix cfg.cpuModelId)}/kernel/x86/microcode/AuthenticAMD.bin kernel/x86/microcode/AuthenticAMD.bin
-                  '';
-
-                  installPhase = ''
-                    mkdir -p $out
-                    touch -d @$SOURCE_DATE_EPOCH kernel/x86/microcode/AuthenticAMD.bin
-                    echo kernel/x86/microcode/AuthenticAMD.bin | bsdtar --uid 0 --gid 0 -cnf - -T - | bsdtar --null -cf - --format=newc @- > $out/amd-ucode.img
+                    cp ${ucodenix cfg.cpuModelId}/kernel/x86/microcode/AuthenticAMD.bin kernel/x86/microcode/AuthenticAMD.bin
                   '';
                 });
               })
             ];
+
+            # we overwrote the package used in this option
+            hardware.cpu.amd.updateMicrocode = true;
 
             assertions = lib.concatLists [
               (lib.optionals (cfg.cpuModelId == "" && cfg.cpuSerialNumber == null) [

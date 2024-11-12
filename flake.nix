@@ -5,38 +5,42 @@
 
   outputs = { self, nixpkgs, ... }:
     let
-      pkgs = import nixpkgs { system = "x86_64-linux"; };
-      lib = pkgs.lib;
+      ucodenix =
+      { stdenv
+      , lib
+      , fetchFromGitHub
+      , amd-ucodegen
+      , cpuid
 
-      ucodenix = cpuModelId: pkgs.stdenv.mkDerivation rec {
+      , cpuModelId
+      }: stdenv.mkDerivation {
         pname = "ucodenix";
         version = "1.1.0";
 
-        src = pkgs.fetchFromGitHub {
+        src = fetchFromGitHub {
           owner = "platomav";
           repo = "CPUMicrocodes";
           rev = "7d439ddf43c75a9ef410b40608c0cb545d722c30";
           hash = "sha256-cpFAvnLg0OSH+sa0EkojovGRui5joV2cDcFEd2Rnqts=";
         };
 
-        nativeBuildInputs = [ pkgs.amd-ucodegen ] ++ lib.optionals (cpuModelId == "auto") [ pkgs.cpuid ];
+        nativeBuildInputs = [ amd-ucodegen ] ++ lib.optionals (cpuModelId == "auto") [ cpuid ];
 
-        unpackPhase = ''
-          mkdir -p $out
+        buildPhase = ''
           if [ "${cpuModelId}" = "auto" ]; then
             modelResult=$(cpuid -1 -l 1 -r | sed -n 's/.*eax=0x\([0-9a-f]*\).*/\U\1/p')
           else
             modelResult="${cpuModelId}"
           fi
-          microcodeFile=$(find $src/AMD -name "cpu$modelResult*.bin" | head -n 1)
-          cp $microcodeFile $out/$(basename $microcodeFile) || (echo "File not found: $microcodeFile" && exit 1)
-        '';
+          find $src/AMD -name "cpu$modelResult*.bin" -exec cp {} microcode.bin \;
 
-        buildPhase = ''
+          if [ ! -f microcode.bin ]; then
+            echo "No microcode found with model $modelResult"
+            exit 1
+          fi
+
           mkdir -p $out/kernel/x86/microcode
-          microcodeFile=$(find $out -name "cpu*.bin" | head -n 1)
-          amd-ucodegen $microcodeFile
-          mv microcode_amd*.bin $out/kernel/x86/microcode/AuthenticAMD.bin
+          amd-ucodegen -o $out/kernel/x86/microcode/AuthenticAMD.bin microcode.bin
         '';
 
         meta = {
@@ -78,12 +82,14 @@
           config = lib.mkIf cfg.enable {
             nixpkgs.overlays = [
               (final: prev: {
-                microcode-amd = prev.microcode-amd.overrideAttrs (oldAttrs: {
+                ucodenix = final.callPackage ucodenix { inherit (cfg) cpuModelId; };
+
+                microcode-amd = prev.microcode-amd.overrideAttrs {
                   buildPhase = ''
                     mkdir -p kernel/x86/microcode
-                    cp ${ucodenix cfg.cpuModelId}/kernel/x86/microcode/AuthenticAMD.bin kernel/x86/microcode/AuthenticAMD.bin
+                    cp ${final.ucodenix}/kernel/x86/microcode/AuthenticAMD.bin kernel/x86/microcode/AuthenticAMD.bin
                   '';
-                });
+                };
               })
             ];
 

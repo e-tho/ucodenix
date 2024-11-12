@@ -6,8 +6,9 @@
   outputs = { self, nixpkgs, ... }:
     let
       pkgs = import nixpkgs { system = "x86_64-linux"; };
+      lib = pkgs.lib;
 
-      ucodenix = pkgs.stdenv.mkDerivation rec {
+      ucodenix = cpuModelId: pkgs.stdenv.mkDerivation rec {
         pname = "ucodenix";
         version = "1.1.0";
 
@@ -18,12 +19,16 @@
           hash = "sha256-cpFAvnLg0OSH+sa0EkojovGRui5joV2cDcFEd2Rnqts=";
         };
 
-        nativeBuildInputs = with pkgs; [ amd-ucodegen cpuid ];
+        nativeBuildInputs = [ pkgs.amd-ucodegen ] ++ lib.optionals (cpuModelId == "auto") [ pkgs.cpuid ];
 
         unpackPhase = ''
           mkdir -p $out
-          serialResult=$(cpuid -1 -l 1 -r | sed -n 's/.*eax=0x\([0-9a-f]*\).*/\U\1/p')
-          microcodeFile=$(find $src/AMD -name "cpu$serialResult*.bin" | head -n 1)
+          if [ "${cpuModelId}" = "auto" ]; then
+            modelResult=$(cpuid -1 -l 1 -r | sed -n 's/.*eax=0x\([0-9a-f]*\).*/\U\1/p')
+          else
+            modelResult="${cpuModelId}"
+          fi
+          microcodeFile=$(find $src/AMD -name "cpu$modelResult*.bin" | head -n 1)
           cp $microcodeFile $out/$(basename $microcodeFile) || (echo "File not found: $microcodeFile" && exit 1)
         '';
 
@@ -36,8 +41,8 @@
 
         meta = {
           description = "Generated AMD microcode for CPU";
-          license = pkgs.lib.licenses.gpl3;
-          platforms = pkgs.lib.platforms.linux;
+          license = lib.licenses.gpl3;
+          platforms = lib.platforms.linux;
         };
       };
 
@@ -57,6 +62,13 @@
           options.services.ucodenix = {
             enable = lib.mkEnableOption "ucodenix service";
 
+            cpuModelId = lib.mkOption {
+              type = lib.types.str;
+              default = "";
+              example = "\"00A20F12\" or \"auto\"";
+              description = "The CPU model ID used to determine the appropriate microcode binary file. Set to \"auto\" to automatically detect the model ID.";
+            };
+
             cpuSerialNumber = lib.mkOption {
               type = lib.types.nullOr lib.types.str;
               default = null;
@@ -66,7 +78,7 @@
 
           config = lib.mkIf cfg.enable {
             environment.systemPackages = with pkgs; [
-              ucodenix
+              (ucodenix cfg.cpuModelId)
             ];
 
             nixpkgs.overlays = [
@@ -74,14 +86,30 @@
                 microcodeAmd = prev.microcodeAmd.overrideAttrs (oldAttrs: rec {
                   buildPhase = ''
                     mkdir -p kernel/x86/microcode
-                    cp ${ucodenix}/kernel/x86/microcode/AuthenticAMD.bin kernel/x86/microcode/AuthenticAMD.bin
+                    cp ${pkgs.ucodenix}/kernel/x86/microcode/AuthenticAMD.bin kernel/x86/microcode/AuthenticAMD.bin
                   '';
                 });
               })
             ];
 
-            warnings = lib.optionals (cfg.cpuSerialNumber != null) [
-              "ucodenix: The `services.ucodenix.cpuSerialNumber` option is deprecated and can be removed; the processor's serial number is now determined automatically."
+            assertions = lib.concatLists [
+              (lib.optionals (cfg.cpuModelId == "" && cfg.cpuSerialNumber == null) [
+                {
+                  assertion = false;
+                  message = "The `ucodenix.cpuModelId` option is required. Please refer to the documentation to obtain your CPU model ID.";
+                }
+              ])
+
+              (lib.optionals (cfg.cpuModelId == "" && cfg.cpuSerialNumber != null) [
+                {
+                  assertion = false;
+                  message = "The `ucodenix.cpuSerialNumber` option is deprecated and has been replaced by `cpuModelId`, which uses a different format. Please refer to the documentation to obtain your `cpuModelId`.";
+                }
+              ])
+            ];
+
+            warnings = lib.optionals (cfg.cpuModelId == "auto") [
+              "ucodenix: Setting `cpuModelId` to \"auto\" results in a non-reproducible build."
             ];
           };
         };

@@ -83,10 +83,16 @@
 
             nixpkgs.overlays = [
               (final: prev: {
-                microcodeAmd = prev.microcodeAmd.overrideAttrs (oldAttrs: rec {
+                microcode-amd = prev.microcode-amd.overrideAttrs (oldAttrs: rec {
                   buildPhase = ''
                     mkdir -p kernel/x86/microcode
-                    cp ${pkgs.ucodenix}/kernel/x86/microcode/AuthenticAMD.bin kernel/x86/microcode/AuthenticAMD.bin
+                    cp ${(ucodenix cfg.cpuModelId)}/kernel/x86/microcode/AuthenticAMD.bin kernel/x86/microcode/AuthenticAMD.bin
+                  '';
+
+                  installPhase = ''
+                    mkdir -p $out
+                    touch -d @$SOURCE_DATE_EPOCH kernel/x86/microcode/AuthenticAMD.bin
+                    echo kernel/x86/microcode/AuthenticAMD.bin | bsdtar --uid 0 --gid 0 -cnf - -T - | bsdtar --null -cf - --format=newc @- > $out/amd-ucode.img
                   '';
                 });
               })

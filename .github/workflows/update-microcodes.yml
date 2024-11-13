@@ -56,14 +56,6 @@ jobs:
             echo "No changes to commit"
           fi
 
-      - name: Update flake.lock
-        run: |
-          nix flake update --commit-lock-file --commit-lockfile-summary "Update inputs"
-          if [ ! -z "$(git ls-files --others)" ] || ! (git diff-index --quiet HEAD --); then
-            git add flake.lock
-            git commit -m "Update inputs"
-          fi
-
       - name: Create PR
         uses: peter-evans/create-pull-request@v6
         with:

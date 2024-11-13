@@ -1,5 +1,5 @@
 {
-  description = "ucodenix flake";
+  description = "Nix flake providing AMD microcode updates for unsupported CPUs";
 
   outputs = { self, ... }:
     let

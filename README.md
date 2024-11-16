@@ -49,13 +49,13 @@ Setting `cpuModelId` to `"auto"` enables automatic detection of the CPU model ID
 
 ## FAQ
 
-### Why would I need this if AMD provides microcodes to `linux-firmware`?
+### Why would I need this if AMD already provides microcodes for Linux?
 
-AMD only supplies microcodes to `linux-firmware` for certain server-grade CPUs. For consumer CPUs, updates are distributed through BIOS releases by motherboard and laptop manufacturers, which can be inconsistent, delayed, or even discontinued over time. This flake ensures you have the latest microcodes directly on NixOS, without depending on BIOS updates.
+AMD only provides microcodes to `linux-firmware` for certain server-grade CPUs. For consumer CPUs, updates are distributed through BIOS releases by motherboard and laptop manufacturers, which can be inconsistent, delayed, or even discontinued over time. This flake ensures you have the latest microcodes directly on NixOS, without depending on BIOS updates.
 
 ### Is there any risk in using this flake?
 
-The microcodes are obtained from official sources and are checked for integrity and size. The Linux kernel has built-in safeguards and will only load microcode that is compatible with your CPU, otherwise defaulting to the BIOS-provided version.
+The microcodes are obtained from official sources and are checked for integrity and size. The Linux kernel has built-in safeguards and will only load microcode that is compatible with your CPU, otherwise defaulting to the BIOS-provided version. As a result, using this flake can be considered safe and should carry no significant risks.
 
 ## Disclaimer
 

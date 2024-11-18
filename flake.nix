@@ -18,8 +18,8 @@
           src = fetchFromGitHub {
             owner = "platomav";
             repo = "CPUMicrocodes";
-            rev = "7d439ddf43c75a9ef410b40608c0cb545d722c30";
-            hash = "sha256-cpFAvnLg0OSH+sa0EkojovGRui5joV2cDcFEd2Rnqts=";
+            rev = "dd59e11bf424158bb68eae99837039ef065c6628";
+            hash = "sha256-rTQ+7ce/maG31Z7d4E/J4WJBRFyNAZhq3p1BLlVqdFA=";
           };
 
           nativeBuildInputs = [ amd-ucodegen ] ++ lib.optionals (cpuModelId == "auto") [ cpuid ];

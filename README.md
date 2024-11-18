@@ -31,6 +31,18 @@ Install `cpuid` and run the following command to retrieve your processor's model
 cpuid -1 -l 1 -r | sed -n 's/.*eax=0x\([0-9a-f]*\).*/\U\1/p'
 ```
 
+Make note of the current microcode version:
+
+```shell
+grep microcode /proc/cpuinfo | head -1
+```
+
+Or get some more information with
+
+```shell
+dmesg | grep microcode
+```
+
 Enable the ucodenix NixOS module and set the model ID in your configuration:
 
 ```nix
@@ -46,6 +58,9 @@ Enable the ucodenix NixOS module and set the model ID in your configuration:
 ```
 
 Setting `cpuModelId` to `"auto"` enables automatic detection of the CPU model ID at build time. Note that this makes the build non-reproducible, so specifying `cpuModelId` manually is recommended.
+
+After a reboot you may wish to examine the microcode version again.
+Of course, there is no guarantee that a microcode version more recent than what you already had is provided.
 
 ## FAQ
 

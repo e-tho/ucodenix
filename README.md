@@ -47,6 +47,27 @@ Enable the ucodenix NixOS module and set the model ID in your configuration:
 
 Setting `cpuModelId` to `"auto"` enables automatic detection of the CPU model ID at build time. Note that this makes the build non-reproducible, so specifying `cpuModelId` manually is recommended.
 
+> [!TIP]
+>
+> To confirm that the microcode has been updated, run:
+>
+> ```shell
+> sudo dmesg | grep microcode
+> ```
+>
+> If the update was successful, you should see output like this:
+>
+> ```shell
+> # For kernel versions >= v6.6:
+> [    0.509186] microcode: Current revision: 0x0a201210
+> [    0.509188] microcode: Updated early from: 0x0a201205
+>
+> # For kernel versions < v6.6:
+> [    0.509188] microcode: microcode updated early to new patch_level=0x0a201210
+> ```
+>
+> Keep in mind that the provided microcode might not be newer than the one from your BIOS.
+
 ## FAQ
 
 ### Why would I need this if AMD already provides microcodes for Linux?

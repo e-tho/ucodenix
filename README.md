@@ -11,9 +11,10 @@
 
 ## Features
 
-- Fetches the microcode binary based on your processor's model ID.
-- Generates the microcode container as used by the Linux kernel.
-- Integrates the generated microcode into the NixOS configuration.
+- Fetches AMD microcode binaries from a repository aggregating updates from official sources.
+- Processes the microcode binaries to generate a container compatible with the Linux kernel.
+- Integrates the generated microcode seamlessly into the NixOS configuration.
+- Supports automatic processing or custom selection based on your CPU model.
 
 ## Installation
 
@@ -25,29 +26,49 @@ inputs.ucodenix.url = "github:e-tho/ucodenix";
 
 ## Usage
 
-1. Install `cpuid` and run the following command to retrieve your processor's model ID:
+### 1. Enable the Module
 
-```shell
-cpuid -1 -l 1 -r | sed -n 's/.*eax=0x\([0-9a-f]*\).*/\U\1/p'
-```
-
-2. Enable the ucodenix NixOS module and set the model ID in your configuration:
+Enable the `ucodenix` NixOS module:
 
 ```nix
 { inputs, ... }:
 {
   imports = [ inputs.ucodenix.nixosModules.default ];
 
-  services.ucodenix = {
-    enable = true;
-    cpuModelId = "00A20F12"; # Replace with your processor's model ID
-  };
+  services.ucodenix.enable = true;
 }
 ```
 
-Setting `cpuModelId` to `"auto"` enables automatic detection of the CPU model ID at build time. Note that this makes the build non-reproducible, so specifying `cpuModelId` manually is recommended.
+### 2. (Optional) Specify Your Processor Model ID
 
-3. Rebuild your configuration and reboot to apply the microcode.
+By default, `ucodenix` processes all available microcode binaries, each intended for a specific CPUID identifying a family of CPUs. The Linux kernel automatically detects and loads the appropriate microcode at boot time. However, you can manually specify your processor's model ID to process only the binary needed for your CPU. This reduces the output size and simplifies the build artifacts, making them more focused for targeted deployments.
+
+#### Retrieve Your Processor's Model ID
+
+To retrieve your processor's model ID, install `cpuid` and run the following command:
+
+```shell
+cpuid -1 -l 1 -r | sed -n 's/.*eax=0x\([0-9a-f]*\).*/\U\1/p'
+```
+
+#### Update Your Configuration
+
+Once you have the model ID, update your configuration as follows:
+
+```nix
+services.ucodenix = {
+  enable = true;
+  cpuModelId = "00A20F12"; # Replace with your processor's model ID
+};
+```
+
+### 3. Apply Changes
+
+Rebuild your configuration and reboot to apply the microcode update.
+
+```shell
+sudo nixos-rebuild switch --flake path/to/flake/directory
+```
 
 > [!TIP]
 >

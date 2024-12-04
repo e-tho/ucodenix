@@ -41,7 +41,9 @@ Enable the `ucodenix` NixOS module:
 
 ### 2. (Optional) Specify Your Processor Model ID
 
-By default, `ucodenix` processes all available microcode binaries, each intended for a specific CPUID identifying a family of CPUs. The Linux kernel automatically detects and loads the appropriate microcode at boot time. However, you can manually specify your processor's model ID to process only the binary needed for your CPU. This reduces the output size and simplifies the build artifacts, making them more focused for targeted deployments.
+By default, `ucodenix` processes all available microcode binaries, each intended for a specific CPUID identifying a family of CPUs. This behavior is controlled by setting `cpuModelId` to `"auto"`. The Linux kernel automatically detects and loads the appropriate microcode at boot time.
+
+If you prefer, you can manually specify your processor's model ID to process only the binary needed for your CPU. This reduces the output size and simplifies the build artifacts, making them more focused for targeted deployments.
 
 #### Retrieve Your Processor's Model ID
 

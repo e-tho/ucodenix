@@ -32,36 +32,33 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Update flake.nix
+      - name: Update microcodes
         run: |
           OUTPUT=$(nix-prefetch-git --quiet https://github.com/platomav/CPUMicrocodes --rev refs/heads/master)
-
           REV=$(echo "$OUTPUT" | jq -r .rev)
-          HASH=$(echo "$OUTPUT" | jq -r .hash)
+          SHORT_REV=$(echo "$REV" | cut -c1-7)
+          echo "Fetched rev: $REV (short: $SHORT_REV)"
 
-          echo "Fetched rev: $REV"
-          echo "Fetched hash: $HASH"
+          echo "rev=$REV" >> $GITHUB_ENV
+          echo "shortRev=$SHORT_REV" >> $GITHUB_ENV
 
-          if ! grep -q "rev = \"$REV\";" flake.nix || ! grep -q "hash = \"$HASH\";" flake.nix; then
-            sed -i '/owner = "platomav"/{n;n;s|rev = ".*";|rev = "'"$REV"'";|}' flake.nix
-            sed -i '/owner = "platomav"/{n;n;n;s|hash = ".*";|hash = "'"$HASH"'";|}' flake.nix
+          if ! grep -q "url = \"github:platomav/CPUMicrocodes/$REV\";" flake.nix; then
+            echo "Updating flake input to rev: $REV"
+            sed -i 's|url = "github:platomav/CPUMicrocodes/.*";|url = "github:platomav/CPUMicrocodes/'"$REV"'";|' flake.nix
 
             git add flake.nix
-            if git diff --staged --quiet; then
-              echo "No changes to commit"
-            else
-              git commit -m "Update microcodes"
-            fi
+            git commit -m "Update CPUMicrocodes flake input"
+            echo "Commit created for new input revision."
           else
-            echo "No changes to commit"
+            echo "No changes to commit. Already up to date with rev: $REV"
           fi
 
       - name: Create PR
         uses: peter-evans/create-pull-request@v6
         with:
-          branch: update-microcodes
+          branch: update-microcodes-${{ env.shortRev }}
           delete-branch: true
           committer: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
           author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
-          title: "Update"
-          body: "This PR updates the microcodes to the latest hash from the CPUMicrocodes repository."
+          title: "Update CPUMicrocodes input to ${{ env.shortRev }}"
+          body: "This PR sets the CPUMicrocodes flake input to the latest revision, updating the microcode binaries."

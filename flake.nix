@@ -1,24 +1,23 @@
 {
   description = "Nix flake providing AMD microcode updates for unsupported CPUs";
 
-  outputs = { self, ... }:
+  inputs.cpu-microcodes = {
+    url = "github:platomav/CPUMicrocodes/06ffdd1bcc222f2e63d8e1d0dcbeb5c23ebdcf99";
+    flake = false;
+  };
+
+  outputs = { self, cpu-microcodes, ... }:
     let
       ucodenix =
         { stdenv
         , lib
-        , fetchFromGitHub
         , amd-ucodegen
         , cpuModelId
         }: stdenv.mkDerivation {
           pname = "ucodenix";
           version = "1.2.0";
 
-          src = fetchFromGitHub {
-            owner = "platomav";
-            repo = "CPUMicrocodes";
-            rev = "06ffdd1bcc222f2e63d8e1d0dcbeb5c23ebdcf99";
-            hash = "sha256-E1Ayr6u+g1oj+eJ4FJ1zUV+WNv+1acI7MjTEhUV3TRY=";
-          };
+          src = cpu-microcodes;
 
           nativeBuildInputs = [ amd-ucodegen ];
 

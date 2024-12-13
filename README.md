@@ -39,7 +39,7 @@ Enable the `ucodenix` NixOS module:
 }
 ```
 
-### 2. (Optional) Specify Your Processor Model ID
+### 2. (Optional) Specify Your Processor's Model ID
 
 By default, `ucodenix` processes all available microcode binaries, each intended for a specific CPUID identifying a family of CPUs. This behavior is controlled by setting `cpuModelId` to `"auto"`. The Linux kernel automatically detects and loads the appropriate microcode at boot time.
 
@@ -47,20 +47,39 @@ If you prefer, you can manually specify your processor's model ID to process onl
 
 #### Retrieve Your Processor's Model ID
 
-To retrieve your processor's model ID, install `cpuid` and run the following command:
+There are two ways to specify your processor's model ID:
+
+1. **Directly Provide the Model ID**
+
+You can retrieve the model ID using the `cpuid` tool. Install it and run the following command:
 
 ```shell
 cpuid -1 -l 1 -r | sed -n 's/.*eax=0x\([0-9a-f]*\).*/\U\1/p'
 ```
 
-#### Update Your Configuration
-
-Once you have the model ID, update your configuration as follows:
+Update your configuration with the retrieved model ID:
 
 ```nix
 services.ucodenix = {
   enable = true;
   cpuModelId = "00A20F12"; # Replace with your processor's model ID
+};
+```
+
+2. **Use a NixOS Facter Report File**
+
+If you use [NixOS Facter](https://github.com/numtide/nixos-facter), you can specify the path to its generated `facter.json` report file for `ucodenix` to compute the model ID. Run the following command to generate your report file:
+
+```shell
+sudo nix run nixpkgs#nixos-facter -- -o facter.json
+```
+
+Update your configuration with the file path:
+
+```nix
+services.ucodenix = {
+  enable = true;
+  cpuModelId = ./path/to/facter.json; # Or config.facter.reportPath if specified
 };
 ```
 

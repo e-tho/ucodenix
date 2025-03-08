@@ -112,6 +112,29 @@ sudo nixos-rebuild switch --flake path/to/flake/directory
 >
 > Keep in mind that the provided microcode might not be newer than the one from your BIOS.
 
+> [!IMPORTANT]
+>
+> The microcodes introduced in early 2025 cannot be loaded without a BIOS version that explicitly addresses the signature verification vulnerability (CVE-2024-56161). If your BIOS does not include the necessary patches, the system will fail to apply the microcode update, resulting in boot-time warnings such as:
+>
+> ```console
+> [    0.001271] microcode: CPU1: update failed for patch_level=0x0a201213
+> ```
+>
+> You must either update your BIOS to the latest version, ensuring it is dated after early 2025 and that its release notes mention the fix for the signature verification vulnerability, or freeze the last supported microcode version by explicitly pinning the repository in your Nix flake inputs, as shown below:
+>
+> ```nix
+> inputs = {
+>   cpu-microcodes = {
+>     url = "github:platomav/CPUMicrocodes/ec5200961ecdf78cf00e55d73902683e835edefd";
+>     flake = false;
+>   };
+>   ucodenix = {
+>     url = "github:e-tho/ucodenix";
+>     inputs.cpu-microcodes.follows = "cpu-microcodes";
+>   };
+> };
+> ```
+
 ## FAQ
 
 ### Why would I need this if AMD already provides microcodes for Linux?

@@ -135,6 +135,21 @@ sudo nixos-rebuild switch --flake path/to/flake/directory
 > };
 > ```
 
+> [!IMPORTANT]
+>
+> The Linux kernel now verifies microcode against a list of approved SHA256 checksums. Since `ucodenix` fetches microcode binaries aggregated from various sources by [CPUMicrocodes](https://github.com/platomav/CPUMicrocodes), they may differ from the officially approved checksums even though their content is functionally identical.
+> If you encounter this error:
+>
+> ```console
+> [    0.001272] microcode: No sha256 digest for patch ID: 0x8701035 found
+> ```
+>
+> You will need to disable this feature for the microcode to load:
+>
+> ```nix
+> boot.kernelParams = [ "microcode.amd_sha_check=off" ];
+> ```
+
 ## FAQ
 
 ### Why would I need this if AMD already provides microcodes for Linux?

@@ -128,6 +128,10 @@
           };
 
           config = lib.mkIf cfg.enable {
+            warnings =
+              lib.optional (!(builtins.elem "microcode.amd_sha_check=off" config.boot.kernelParams))
+                "ucodenix: Kernel microcode checksum verification is active. This may prevent microcode from loading. Consider disabling it by setting `boot.kernelParams = [ \"microcode.amd_sha_check=off\" ];` in your configuration.";
+
             nixpkgs.overlays = [
               (final: prev: {
                 ucodenix = final.callPackage ucodenix { inherit (cfg) cpuModelId; };

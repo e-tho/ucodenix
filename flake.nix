@@ -6,21 +6,26 @@
     flake = false;
   };
 
-  outputs = { self, cpu-microcodes, ... }:
+  outputs =
+    { self, cpu-microcodes, ... }:
     let
       ucodenix =
-        { stdenv
-        , lib
-        , amd-ucodegen
-        , jql
-        , cpuModelId
-        }: stdenv.mkDerivation {
+        {
+          stdenv,
+          lib,
+          amd-ucodegen,
+          jql,
+          cpuModelId,
+        }:
+        stdenv.mkDerivation {
           pname = "ucodenix";
           version = "1.3.0";
 
           src = cpu-microcodes;
 
-          nativeBuildInputs = [ amd-ucodegen ] ++ lib.optionals (lib.isPath cpuModelId && builtins.pathExists cpuModelId) [ jql ];
+          nativeBuildInputs = [
+            amd-ucodegen
+          ] ++ lib.optionals (lib.isPath cpuModelId && builtins.pathExists cpuModelId) [ jql ];
 
           buildPhase = ''
             temp_dir=$(mktemp -d)
@@ -96,9 +101,10 @@
     in
     {
       nixosModules.default =
-        { config
-        , lib
-        , ...
+        {
+          config,
+          lib,
+          ...
         }:
 
         let
@@ -145,7 +151,9 @@
           };
 
           imports = [
-            (lib.mkRemovedOptionModule [ "services" "ucodenix" "cpuSerialNumber" ] "Please use `ucodenix.cpuModelId` instead. This option takes a different format, refer to the documentation to obtain your `cpuModelId`.")
+            (lib.mkRemovedOptionModule [ "services" "ucodenix" "cpuSerialNumber" ]
+              "Please use `ucodenix.cpuModelId` instead. This option takes a different format, refer to the documentation to obtain your `cpuModelId`."
+            )
           ];
         };
 

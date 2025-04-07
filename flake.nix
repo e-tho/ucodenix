@@ -2,7 +2,7 @@
   description = "Nix flake providing AMD microcode updates for unsupported CPUs";
 
   inputs.cpu-microcodes = {
-    url = "github:platomav/CPUMicrocodes/f093bec842057ebf35d0525fcd69f649714f4485";
+    url = "github:platomav/CPUMicrocodes/ea9a847812d33c7671edb073d3149767ac674668";
     flake = false;
   };
 

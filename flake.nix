@@ -1,5 +1,5 @@
 {
-  description = "Nix flake providing AMD microcode updates for unsupported CPUs";
+  description = "Microcode updates for AMD CPUs on NixOS";
 
   inputs.cpu-microcodes = {
     url = "github:platomav/CPUMicrocodes/ea9a847812d33c7671edb073d3149767ac674668";

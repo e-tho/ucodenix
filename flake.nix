@@ -99,12 +99,32 @@
           };
         };
 
+      microcode-amd-pkg =
+        {
+          stdenv,
+          libarchive,
+          ucodenix,
+        }:
+        stdenv.mkDerivation {
+          name = "amd-ucode";
+          src = ucodenix;
+
+          nativeBuildInputs = [ libarchive ];
+
+          installPhase = ''
+            mkdir -p $out
+            touch -d @$SOURCE_DATE_EPOCH kernel/x86/microcode/AuthenticAMD.bin
+            echo kernel/x86/microcode/AuthenticAMD.bin | bsdtar --uid 0 --gid 0 -cnf - -T - | bsdtar --null -cf - --format=newc @- > $out/amd-ucode.img
+          '';
+        };
+
     in
     {
       nixosModules.default =
         {
           config,
           lib,
+          pkgs,
           ...
         }:
 
@@ -136,23 +156,14 @@
             nixpkgs.overlays = [
               (final: prev: {
                 ucodenix = final.callPackage ucodenix { inherit (cfg) cpuModelId; };
-
-                microcode-amd = final.stdenv.mkDerivation {
-                  name = "amd-ucode";
-                  src = final.ucodenix;
-
-                  nativeBuildInputs = [ final.libarchive ];
-
-                  installPhase = ''
-                    mkdir -p $out
-                    touch -d @$SOURCE_DATE_EPOCH kernel/x86/microcode/AuthenticAMD.bin
-                    echo kernel/x86/microcode/AuthenticAMD.bin | bsdtar --uid 0 --gid 0 -cnf - -T - | bsdtar --null -cf - --format=newc @- > $out/amd-ucode.img
-                  '';
+                microcode-amd-ucodenix = final.callPackage microcode-amd-pkg {
+                  ucodenix = final.ucodenix;
                 };
               })
             ];
 
             hardware.cpu.amd.updateMicrocode = true;
+            hardware.cpu.amd.microcodePackage = pkgs.microcode-amd-ucodenix;
           };
 
           imports = [

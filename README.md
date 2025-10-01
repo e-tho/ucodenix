@@ -90,7 +90,7 @@ services.ucodenix = {
 Rebuild your configuration and reboot to apply the microcode update.
 
 ```shell
-nixos-rebuild switch --sudo --flake path/to/flake/directory
+nixos-rebuild boot --sudo --flake path/to/flake/directory
 ```
 
 > [!TIP]

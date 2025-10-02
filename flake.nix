@@ -148,23 +148,41 @@
             };
           };
 
-          config = lib.mkIf cfg.enable {
-            warnings =
-              lib.optional (!(builtins.elem "microcode.amd_sha_check=off" config.boot.kernelParams))
-                "ucodenix: Kernel microcode checksum verification is active. This may prevent microcode from loading. Consider disabling it by setting `boot.kernelParams = [ \"microcode.amd_sha_check=off\" ];` in your configuration.";
+          config = lib.mkIf cfg.enable (
+            let
+              hasOverrideOption = lib.versionAtLeast (lib.versions.majorMinor lib.version) "25.11";
+            in
+            lib.mkMerge [
+              {
+                warnings =
+                  lib.optional (!(builtins.elem "microcode.amd_sha_check=off" config.boot.kernelParams))
+                    "ucodenix: Kernel microcode checksum verification is active. This may prevent microcode from loading. Consider disabling it by setting `boot.kernelParams = [ \"microcode.amd_sha_check=off\" ];` in your configuration.";
 
-            nixpkgs.overlays = [
-              (final: prev: {
-                ucodenix = final.callPackage ucodenix { inherit (cfg) cpuModelId; };
-                microcode-amd-ucodenix = final.callPackage microcode-amd-pkg {
-                  ucodenix = final.ucodenix;
-                };
+                nixpkgs.overlays = [
+                  (final: prev: {
+                    ucodenix = final.callPackage ucodenix { inherit (cfg) cpuModelId; };
+                    microcode-amd-ucodenix = final.callPackage microcode-amd-pkg {
+                      ucodenix = final.ucodenix;
+                    };
+                  })
+                ];
+
+                hardware.cpu.amd.updateMicrocode = true;
+              }
+
+              (lib.mkIf hasOverrideOption {
+                hardware.cpu.amd.microcodePackage = pkgs.microcode-amd-ucodenix;
               })
-            ];
 
-            hardware.cpu.amd.updateMicrocode = true;
-            hardware.cpu.amd.microcodePackage = pkgs.microcode-amd-ucodenix;
-          };
+              (lib.mkIf (!hasOverrideOption) {
+                nixpkgs.overlays = [
+                  (final: prev: {
+                    microcode-amd = final.microcode-amd-ucodenix;
+                  })
+                ];
+              })
+            ]
+          );
 
           imports = [
             (lib.mkRemovedOptionModule [ "services" "ucodenix" "cpuSerialNumber" ]

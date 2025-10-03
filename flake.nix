@@ -125,6 +125,7 @@
           config,
           lib,
           pkgs,
+          options,
           ...
         }:
 
@@ -150,7 +151,7 @@
 
           config = lib.mkIf cfg.enable (
             let
-              hasOverrideOption = lib.versionAtLeast (lib.versions.majorMinor lib.version) "25.11";
+              hasOverrideOption = lib.hasAttrByPath [ "hardware" "cpu" "amd" "microcodePackage" ] options;
             in
             lib.mkMerge [
               {

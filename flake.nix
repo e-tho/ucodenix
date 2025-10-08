@@ -171,11 +171,11 @@
                 hardware.cpu.amd.updateMicrocode = true;
               }
 
-              (lib.mkIf hasOverrideOption {
+              (lib.optionalAttrs hasOverrideOption {
                 hardware.cpu.amd.microcodePackage = pkgs.microcode-amd-ucodenix;
               })
 
-              (lib.mkIf (!hasOverrideOption) {
+              (lib.optionalAttrs (!hasOverrideOption) {
                 nixpkgs.overlays = [
                   (final: prev: {
                     microcode-amd = final.microcode-amd-ucodenix;

@@ -2,7 +2,7 @@
   description = "Microcode updates for AMD CPUs on NixOS";
 
   inputs.cpu-microcodes = {
-    url = "github:platomav/CPUMicrocodes/ae2c33ecd7a5855a743b360a05bc984911d16957";
+    url = "github:platomav/CPUMicrocodes/2bd1bd04b8af70805c3da1f0f36673d896ca7952";
     flake = false;
   };
 

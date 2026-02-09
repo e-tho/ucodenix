@@ -22,11 +22,6 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
 
-      - name: Install dependencies
-        run: |
-          nix-env -iA nix-prefetch-git -f '<nixpkgs>'
-          nix-env -iA jq -f '<nixpkgs>'
-
       - name: Setup git
         run: |
           git config --local user.name "github-actions[bot]"
@@ -34,8 +29,8 @@ jobs:
 
       - name: Update microcodes
         run: |
-          OUTPUT=$(nix-prefetch-git --quiet https://github.com/platomav/CPUMicrocodes --rev refs/heads/master)
-          REV=$(echo "$OUTPUT" | jq -r .rev)
+          OUTPUT=$(nix run nixpkgs#nix-prefetch-git -- --quiet https://github.com/platomav/CPUMicrocodes --rev refs/heads/master)
+          REV=$(echo "$OUTPUT" | nix run nixpkgs#jq -- -r .rev)
           SHORT_REV=$(echo "$REV" | cut -c1-7)
           echo "Fetched rev: $REV (short: $SHORT_REV)"
 

@@ -156,7 +156,7 @@ nixos-rebuild boot --sudo --flake path/to/flake/directory
 
 ### Why would I need this if AMD already provides microcodes for Linux?
 
-AMD only provides microcodes to `linux-firmware` for certain server-grade CPUs. For consumer CPUs, updates are distributed through BIOS releases by motherboard and laptop manufacturers, which can be inconsistent, delayed, or even discontinued over time. This flake ensures you have the latest microcodes directly on NixOS, without depending on BIOS updates.
+While AMD does provide microcode updates through `linux-firmware`, coverage is limited to a subset of AMD CPU models, with many being outdated. `ucodenix` uses microcodes aggregated from official sources to provide broader support and more current updates. This ensures your system receives the latest microcode patches, including critical security fixes, without relying on BIOS updates from your manufacturer, which can be inconsistent, delayed, or discontinued.
 
 ### Is there any risk in using this flake?
 

@@ -26,7 +26,9 @@
           nativeBuildInputs = [
             amd-ucodegen
           ]
-          ++ lib.optionals (lib.isPath cpuModelId && builtins.pathExists cpuModelId) [ jql ];
+          ++ lib.optionals (
+            (lib.isPath cpuModelId || lib.isString cpuModelId) && builtins.pathExists cpuModelId
+          ) [ jql ];
 
           buildPhase = ''
             temp_dir=$(mktemp -d)

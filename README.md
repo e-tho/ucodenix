@@ -6,7 +6,7 @@
 
 `ucodenix` delivers microcode updates for AMD CPUs on NixOS.
 
-Enjoy support for consumer and server-grade platforms, without relying on BIOS updates or manufacturer delays.
+Supports consumer and server-grade platforms, regardless of BIOS updates or manufacturer delays.
 
 > [!NOTE]
 > Microcodes are fetched from [this repository](https://github.com/platomav/CPUMicrocodes), which aggregates them from official sources provided and made public by various manufacturers.

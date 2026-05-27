@@ -9,7 +9,6 @@
   outputs =
     { self, cpu-microcodes, ... }:
     let
-      ucodenix = ./pkgs/ucodenix;
 
       microcode-amd-pkg =
         {
@@ -73,7 +72,7 @@
 
                 nixpkgs.overlays = [
                   (final: prev: {
-                    ucodenix = final.callPackage ucodenix {
+                    ucodenix = final.callPackage ./pkgs/ucodenix {
                       inherit cpu-microcodes;
                       inherit (cfg) cpuModelId;
                     };

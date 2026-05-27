@@ -10,7 +10,7 @@
     { self, cpu-microcodes, ... }:
     let
 
-      microcode-amd-pkg =
+      microcode-amd-ucodenix =
         {
           stdenv,
           libarchive,
@@ -76,7 +76,7 @@
                       inherit cpu-microcodes;
                       inherit (cfg) cpuModelId;
                     };
-                    microcode-amd-ucodenix = final.callPackage microcode-amd-pkg {
+                    microcode-amd-ucodenix = final.callPackage microcode-amd-ucodenix {
                       ucodenix = final.ucodenix;
                     };
                   })

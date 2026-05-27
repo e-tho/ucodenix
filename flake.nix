@@ -10,8 +10,6 @@
     { self, cpu-microcodes, ... }:
     let
 
-      microcode-amd-ucodenix = ./pkgs/microcode-amd-ucodenix;
-
     in
     {
       nixosModules.default =
@@ -59,7 +57,7 @@
                       inherit cpu-microcodes;
                       inherit (cfg) cpuModelId;
                     };
-                    microcode-amd-ucodenix = final.callPackage microcode-amd-ucodenix {
+                    microcode-amd-ucodenix = final.callPackage ./pkgs/microcode-amd-ucodenix {
                       ucodenix = final.ucodenix;
                     };
                   })

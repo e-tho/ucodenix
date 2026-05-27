@@ -8,9 +8,6 @@
 
   outputs =
     { self, cpu-microcodes, ... }:
-    let
-
-    in
     {
       nixosModules.default =
         {

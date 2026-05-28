@@ -27,6 +27,19 @@ in
 
     cpu-microcodes = lib.mkOption {
       type = lib.types.path;
+      default =
+        if builtins ? fetchTree then
+          import ../fetch-tree-cpu-microcodes.nix
+        else
+          throw ''
+            default value for `services.ucodenix.cpu-microcodes` provided only when `builtins ? fetchTree`.
+          '';
+      defaultText = ''
+        When `builtins ? fetchTree` the default value is fetched using
+        `fetchTree` according to ucodenix project's `flake.lock`.
+        See ucodenix documentation and
+        [`builtins.fetchTree` documentation](https://releases.nixos.org/nix/nix-2.34.7/manual/language/builtins.html#builtins-fetchTree).
+      '';
       description = ''
         Path to content of https://github.com/platomav/CPUMicrocodes.
       '';

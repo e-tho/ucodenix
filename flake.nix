@@ -36,6 +36,24 @@
                 all available microcode binaries.
               '';
             };
+
+            cpu-microcodes = lib.mkOption {
+              type = lib.types.path;
+              default = cpu-microcodes.outPath;
+              description = ''
+                Path to content of https://github.com/platomav/CPUMicrocodes.
+              '';
+              example =
+                # nix
+                ''
+                  pkgs.fetchFromGitHub {
+                    owner = "platomav";
+                    repo = "CPUMicrocodes";
+                    rev = "8554c59e05ae66661ebd4b33770679313888574f";
+                    hash = "";
+                  }
+                '';
+            };
           };
 
           config = lib.mkIf cfg.enable (
@@ -51,8 +69,7 @@
                 nixpkgs.overlays = [
                   (final: prev: {
                     ucodenix = final.callPackage ./pkgs/ucodenix {
-                      inherit cpu-microcodes;
-                      inherit (cfg) cpuModelId;
+                      inherit (cfg) cpu-microcodes cpuModelId;
                     };
                     microcode-amd-ucodenix = final.callPackage ./pkgs/microcode-amd-ucodenix {
                       ucodenix = final.ucodenix;

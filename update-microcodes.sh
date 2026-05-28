@@ -2,19 +2,18 @@
 
 set -euo pipefail
 
-OUTPUT=$(nix run nixpkgs#nix-prefetch-git -- --quiet https://github.com/platomav/CPUMicrocodes --rev refs/heads/master)
-REV=$(echo "$OUTPUT" | nix run nixpkgs#jq -- -r .rev)
+nix flake update cpu-microcodes
+NODE_NAME=$(nix run nixpkgs#jq -- -r '.nodes.root.inputs."cpu-microcodes"' flake.lock)
+REV=$(nix run nixpkgs#jq -- -r ".nodes.\"$NODE_NAME\".locked.rev" flake.lock)
 SHORT_REV=$(echo "$REV" | cut -c1-7)
-echo "Fetched rev: $REV (short: $SHORT_REV)"
+echo "rev: $REV (short: $SHORT_REV)"
 
 echo "rev=$REV" >> $GITHUB_ENV
 echo "shortRev=$SHORT_REV" >> $GITHUB_ENV
 
-if ! grep -q "url = \"github:platomav/CPUMicrocodes/$REV\";" flake.nix; then
+if ! git diff --quiet; then
   echo "Updating flake input to rev: $REV"
-  sed -i 's|url = "github:platomav/CPUMicrocodes/.*";|url = "github:platomav/CPUMicrocodes/'"$REV"'";|' flake.nix
-
-  git add flake.nix
+  git add flake.lock
   git commit -m "Update CPUMicrocodes flake input"
   echo "Commit created for new input revision."
 else

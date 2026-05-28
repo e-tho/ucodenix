@@ -16,6 +16,9 @@
           amd-ucodegen,
           jql,
           cpuModelId,
+
+          # path to content of https://github.com/platomav/CPUMicrocodes
+          cpu-microcodes,
         }:
         stdenv.mkDerivation {
           pname = "ucodenix";
@@ -161,7 +164,10 @@
 
                 nixpkgs.overlays = [
                   (final: prev: {
-                    ucodenix = final.callPackage ucodenix { inherit (cfg) cpuModelId; };
+                    ucodenix = final.callPackage ucodenix {
+                      inherit cpu-microcodes;
+                      inherit (cfg) cpuModelId;
+                    };
                     microcode-amd-ucodenix = final.callPackage microcode-amd-pkg {
                       ucodenix = final.ucodenix;
                     };

@@ -18,30 +18,76 @@ Supports consumer and server-grade platforms, regardless of BIOS updates or manu
 - Integrates the generated microcode seamlessly into the NixOS configuration.
 - Supports automatic processing or custom selection based on your CPU model.
 
-## Installation
-
-Add the flake as an input:
-
-```nix
-inputs.ucodenix.url = "github:e-tho/ucodenix";
-```
-
 ## Usage
 
-### 1. Enable the Module
+### 1. Fetch it somehow
+
+For example, add it as a flake input:
+
+```nix
+inputs.ucodenix = {
+  url = "github:e-tho/ucodenix";
+  flake = false;
+};
+```
+
+
+### 2. Enable the Module
 
 Enable the `ucodenix` NixOS module:
 
 ```nix
-{ inputs, ... }:
 {
-  imports = [ inputs.ucodenix.nixosModules.default ];
+  imports = [ "${ucodenix}/modules/nixos.nix" ];
 
   services.ucodenix.enable = true;
 }
 ```
 
-### 2. (Optional) Specify Your Processor's Model ID
+### 3. Provide the cpu-microcodes source
+
+#### Automatically via flake output
+
+The cpu-microcodes source is provided automatically when
+the NixOS module is imported via ucodenix's flake output.
+That requires setting the input `flake = true`:
+
+```nix
+inputs.ucodenix = {
+  url = "github:e-tho/ucodenix";
+  flake = true; # `true` is the default value, by the way
+};
+```
+
+Then, the importing looks like this:
+
+```nix
+{
+  imports = [ inputs.ucodenix.nixosModules.default ];
+}
+```
+
+#### Automatically via `builtins.fetchTree`
+
+The cpu-microcodes source is also provided automatically simply when
+[`builtins.fetchTree`](https://releases.nixos.org/nix/nix-2.34.7/manual/language/builtins.html#builtins-fetchTree)
+is available. No further modifications required.
+
+#### Manually
+
+Otherwise, it must be provided. For example:
+
+```nix
+{ pkgs, ... }: {
+    services.ucodenix.cpu-microcodes = pkgs.fetchFromGitHub {
+      owner = "platomav";
+      repo = "CPUMicrocodes";
+      # `rev` and `hash`
+    };
+}
+```
+
+### 4. (Optional) Specify Your Processor's Model ID
 
 By default, `ucodenix` processes all available microcode binaries, each intended for a specific CPUID identifying a family of CPUs. This behavior is controlled by setting `cpuModelId` to `"auto"`. The Linux kernel automatically detects and loads the appropriate microcode at boot time.
 

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 OUTPUT=$(nix run nixpkgs#nix-prefetch-git -- --quiet https://github.com/platomav/CPUMicrocodes --rev refs/heads/master)
 REV=$(echo "$OUTPUT" | nix run nixpkgs#jq -- -r .rev)
 SHORT_REV=$(echo "$REV" | cut -c1-7)

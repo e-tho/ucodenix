@@ -6,15 +6,7 @@
   cpuModelId,
 
   # path to content of https://github.com/platomav/CPUMicrocodes
-  cpu-microcodes ?
-    if builtins ? fetchTree then
-      let
-        lockFile = builtins.fromJSON (builtins.readFile ../../flake.lock);
-        nodeName = lockFile.nodes.${lockFile.root}.inputs.cpu-microcodes;
-      in
-      fetchTree lockFile.nodes.${nodeName}.locked
-    else
-      null,
+  cpu-microcodes ? if builtins ? fetchTree then import ../../fetch-tree-cpu-microcodes.nix else null,
 }:
 stdenv.mkDerivation {
   pname = "ucodenix";

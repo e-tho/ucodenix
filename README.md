@@ -20,9 +20,40 @@ Supports consumer and server-grade platforms, regardless of BIOS updates or manu
 
 ## Usage
 
-### 1. Fetch it somehow
+### With flakes
 
-For example, add it as a flake input:
+#### 1. Add the flake input
+
+```nix
+inputs.ucodenix.url = "github:e-tho/ucodenix";
+```
+
+#### 2. Enable the module
+
+```nix
+{ inputs, ... }:
+{
+  imports = [ inputs.ucodenix.nixosModules.default ];
+
+  services.ucodenix.enable = true;
+}
+```
+
+#### 3. (Optional) Specify your processor's model ID
+
+See [Retrieving your processor's model ID](#retrieving-your-processors-model-id).
+
+#### 4. Apply changes
+
+Rebuild your configuration and reboot to apply the microcode update.
+
+```shell
+nixos-rebuild boot --sudo --flake path/to/flake/directory
+```
+
+### Without flakes
+
+#### 1. Add the flake input
 
 ```nix
 inputs.ucodenix = {
@@ -31,172 +62,148 @@ inputs.ucodenix = {
 };
 ```
 
+#### 2. Import the module
 
-### 2. Enable the Module
+```nix
+{ inputs, ... }:
+{
+  imports = [ "${inputs.ucodenix}/modules/nixos.nix" ];
+}
+```
 
-Enable the `ucodenix` NixOS module:
+#### 3. Provide the cpu-microcodes source
+
+The source is resolved automatically by default. To override it:
+
+```nix
+{ pkgs, ... }:
+{
+  services.ucodenix.cpu-microcodes = pkgs.fetchFromGitHub {
+    owner = "platomav";
+    repo = "CPUMicrocodes";
+    rev = ""; # pin a specific revision
+    hash = "";
+  };
+}
+```
+
+#### 4. Enable the module
 
 ```nix
 {
-  imports = [ "${ucodenix}/modules/nixos.nix" ];
-
   services.ucodenix.enable = true;
 }
 ```
 
-### 3. Provide the cpu-microcodes source
+#### 5. (Optional) Specify your processor's model ID
 
-#### Automatically via flake output
+See [Retrieving your processor's model ID](#retrieving-your-processors-model-id).
 
-The cpu-microcodes source is provided automatically when
-the NixOS module is imported via ucodenix's flake output.
-That requires setting the input `flake = true`:
+#### 6. Apply changes
 
-```nix
-inputs.ucodenix = {
-  url = "github:e-tho/ucodenix";
-  flake = true; # `true` is the default value, by the way
-};
+Rebuild your configuration and reboot to apply the microcode update.
+
+```shell
+nixos-rebuild boot --sudo
 ```
 
-Then, the importing looks like this:
+### Retrieving your processor's model ID
 
-```nix
-{
-  imports = [ inputs.ucodenix.nixosModules.default ];
-}
-```
+By default, `ucodenix` processes all available microcode binaries, each intended for a specific CPUID identifying a family of CPUs. The Linux kernel automatically detects and loads the appropriate microcode at boot time.
 
-#### Automatically via `builtins.fetchTree`
+You can optionally specify your processor's model ID to process only the binary needed for your CPU. This reduces the output size and simplifies the build artifacts, making them more focused for targeted deployments.
 
-The cpu-microcodes source is also provided automatically simply when
-[`builtins.fetchTree`](https://releases.nixos.org/nix/nix-2.34.7/manual/language/builtins.html#builtins-fetchTree)
-is available. No further modifications required.
+There are two ways to provide it:
 
-#### Manually
+#### 1. Directly provide the model ID
 
-Otherwise, it must be provided. For example:
-
-```nix
-{ pkgs, ... }: {
-    services.ucodenix.cpu-microcodes = pkgs.fetchFromGitHub {
-      owner = "platomav";
-      repo = "CPUMicrocodes";
-      # `rev` and `hash`
-    };
-}
-```
-
-### 4. (Optional) Specify Your Processor's Model ID
-
-By default, `ucodenix` processes all available microcode binaries, each intended for a specific CPUID identifying a family of CPUs. This behavior is controlled by setting `cpuModelId` to `"auto"`. The Linux kernel automatically detects and loads the appropriate microcode at boot time.
-
-If you prefer, you can manually specify your processor's model ID to process only the binary needed for your CPU. This reduces the output size and simplifies the build artifacts, making them more focused for targeted deployments.
-
-#### Retrieve Your Processor's Model ID
-
-There are two ways to specify your processor's model ID:
-
-1. **Directly Provide the Model ID**
-
-You can retrieve the model ID using the `cpuid` tool. Install it and run the following command:
+Install the `cpuid` tool and run:
 
 ```shell
 cpuid -1 -l 1 -r | sed -n 's/.*eax=0x\([0-9a-f]*\).*/\U\1/p'
 ```
 
-Update your configuration with the retrieved model ID:
+Then set it in your configuration:
 
 ```nix
-services.ucodenix = {
-  enable = true;
-  cpuModelId = "00A20F12"; # Replace with your processor's model ID
-};
+services.ucodenix.cpuModelId = "00A20F12"; # replace with your processor's model ID
 ```
 
-2. **Use a NixOS Facter Report File**
+#### 2. Use a NixOS Facter report file
 
-If you use [NixOS Facter](https://github.com/numtide/nixos-facter), you can specify the path to its generated `facter.json` report file for `ucodenix` to compute the model ID. Run the following command to generate your report file:
+If you use [NixOS Facter](https://github.com/numtide/nixos-facter), generate a report file:
 
 ```shell
 sudo nix run nixpkgs#nixos-facter -- -o facter.json
 ```
 
-Update your configuration with the file path:
+Then point to it in your configuration:
 
 ```nix
-services.ucodenix = {
-  enable = true;
-  cpuModelId = ./path/to/facter.json; # Or config.facter.reportPath if specified
-};
+services.ucodenix.cpuModelId = ./path/to/facter.json; # or config.facter.reportPath if specified
 ```
 
-### 3. Apply Changes
+### Verifying the update
 
-Rebuild your configuration and reboot to apply the microcode update.
+After rebuilding and rebooting, confirm the microcode was applied:
 
 ```shell
-nixos-rebuild boot --sudo --flake path/to/flake/directory
+sudo dmesg | grep microcode
 ```
 
-> [!TIP]
->
-> To confirm that the microcode has been updated, run:
->
-> ```shell
-> sudo dmesg | grep microcode
-> ```
->
-> If the update was successful, you should see output like this:
->
-> ```shell
-> # For kernel versions >= v6.6:
-> [    0.509186] microcode: Current revision: 0x0a201210
-> [    0.509188] microcode: Updated early from: 0x0a201205
->
-> # For kernel versions < v6.6:
-> [    0.509188] microcode: microcode updated early to new patch_level=0x0a201210
-> ```
->
-> Keep in mind that the provided microcode might not be newer than the one from your BIOS.
+If the update was successful, you should see output like this:
 
-> [!IMPORTANT]
->
-> The microcodes introduced in early 2025 cannot be loaded without a BIOS version that explicitly addresses the signature verification vulnerability (CVE-2024-56161). If your BIOS does not include the necessary patches, the system will fail to apply the microcode update, resulting in boot-time warnings such as:
->
-> ```console
-> [    0.001271] microcode: CPU1: update failed for patch_level=0x0a201213
-> ```
->
-> You must either update your BIOS to the latest version, ensuring it is dated after early 2025 and that its release notes mention the fix for the signature verification vulnerability, or freeze the last supported microcode version by explicitly pinning the repository in your Nix flake inputs, as shown below:
->
-> ```nix
-> inputs = {
->   cpu-microcodes = {
->     url = "github:platomav/CPUMicrocodes/ec5200961ecdf78cf00e55d73902683e835edefd";
->     flake = false;
->   };
->   ucodenix = {
->     url = "github:e-tho/ucodenix";
->     inputs.cpu-microcodes.follows = "cpu-microcodes";
->   };
-> };
-> ```
+```shell
+# For kernel versions >= v6.6:
+[    0.509186] microcode: Current revision: 0x0a201210
+[    0.509188] microcode: Updated early from: 0x0a201205
 
-> [!IMPORTANT]
->
-> The Linux kernel now verifies microcode against a list of approved SHA256 checksums. Since `ucodenix` fetches microcode binaries aggregated from various sources by [CPUMicrocodes](https://github.com/platomav/CPUMicrocodes), they may differ from the officially approved checksums even though their content is functionally identical.
-> If you encounter this error:
->
-> ```console
-> [    0.001272] microcode: No sha256 digest for patch ID: 0x8701035 found
-> ```
->
-> You will need to disable this feature for the microcode to load:
->
-> ```nix
-> boot.kernelParams = [ "microcode.amd_sha_check=off" ];
-> ```
+# For kernel versions < v6.6:
+[    0.509188] microcode: microcode updated early to new patch_level=0x0a201210
+```
+
+Note that the provided microcode might not be newer than the one from your BIOS.
+
+## Troubleshooting
+
+### Microcode fails SHA256 verification
+
+The Linux kernel verifies microcode against a list of approved SHA256 checksums. Since `ucodenix` fetches microcode binaries aggregated from various sources by [CPUMicrocodes](https://github.com/platomav/CPUMicrocodes), they may differ from the officially approved checksums even though their content is functionally identical.
+
+If you encounter this error:
+
+```console
+[    0.001272] microcode: No sha256 digest for patch ID: 0x8701035 found
+```
+
+Disable the check:
+
+```nix
+boot.kernelParams = [ "microcode.amd_sha_check=off" ];
+```
+
+### Microcode fails to load after a BIOS update
+
+Microcodes introduced in early 2025 cannot be loaded without a BIOS version that explicitly addresses the signature verification vulnerability (CVE-2024-56161). If your BIOS does not include the necessary patches, you will see boot-time warnings such as:
+
+```console
+[    0.001271] microcode: CPU1: update failed for patch_level=0x0a201213
+```
+
+Update your BIOS to a version dated after early 2025 whose release notes mention the fix for CVE-2024-56161. If your manufacturer has not released such an update, pin the last supported microcode revision:
+
+```nix
+inputs = {
+  cpu-microcodes = {
+    url = "github:platomav/CPUMicrocodes/ec5200961ecdf78cf00e55d73902683e835edefd";
+    flake = false;
+  };
+  ucodenix = {
+    url = "github:e-tho/ucodenix";
+    inputs.cpu-microcodes.follows = "cpu-microcodes";
+  };
+};
+```
 
 ## FAQ
 

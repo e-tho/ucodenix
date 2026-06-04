@@ -1,6 +1,26 @@
 {
   "nodes": {
-    "root": {}
+    "cpu-microcodes": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1774217076,
+        "narHash": "sha256-30FsjMDFzZ8zuEqt/wxxnNQ8vc2tp7fa1EyI+VxPj1g=",
+        "owner": "platomav",
+        "repo": "CPUMicrocodes",
+        "rev": "efd81b0446842e952aa848ca10a659f0a5ed3bad",
+        "type": "github"
+      },
+      "original": {
+        "owner": "platomav",
+        "repo": "CPUMicrocodes",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "cpu-microcodes": "cpu-microcodes"
+      }
+    }
   },
   "root": "root",
   "version": 7

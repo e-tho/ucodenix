@@ -215,6 +215,10 @@ AMD distributes microcode updates primarily through BIOS releases, which can be 
 
 The microcodes are obtained from official sources and are checked for integrity and size. The Linux kernel has built-in safeguards and will only load microcode that is compatible with your CPU, otherwise defaulting to the BIOS-provided version. As a result, using this flake can be considered safe and should carry no significant risks.
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Disclaimer
 
 This software is provided "as is" without any guarantees.

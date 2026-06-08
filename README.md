@@ -182,7 +182,7 @@ Disable the check:
 boot.kernelParams = [ "microcode.amd_sha_check=off" ];
 ```
 
-### Microcode fails to load after a BIOS update
+### Microcode update fails to apply
 
 Microcodes introduced in early 2025 cannot be loaded without a BIOS version that explicitly addresses the signature verification vulnerability (CVE-2024-56161). If your BIOS does not include the necessary patches, you will see boot-time warnings such as:
 

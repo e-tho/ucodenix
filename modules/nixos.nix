@@ -69,7 +69,10 @@ in
     lib.mkMerge [
       {
         warnings =
-          lib.optional (cfg.enableShaCheckWarning && !(builtins.elem "microcode.amd_sha_check=off" config.boot.kernelParams))
+          lib.optional
+            (
+              cfg.enableShaCheckWarning && !(builtins.elem "microcode.amd_sha_check=off" config.boot.kernelParams)
+            )
             "ucodenix: Kernel microcode checksum verification is active. This may prevent microcode from loading. Consider disabling it by setting `boot.kernelParams = [ \"microcode.amd_sha_check=off\" ];` in your configuration or setting `services.ucodenix.enableShaCheckWarning = false;`.";
 
         nixpkgs.overlays = [

@@ -13,6 +13,12 @@ in
   options.services.ucodenix = {
     enable = lib.mkEnableOption "ucodenix service";
 
+    enableShaCheckWarning = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Whether to warn when kernel microcode checksum verification is active.";
+    };
+
     cpuModelId = lib.mkOption {
       type = lib.types.either lib.types.str lib.types.path;
       example = "\"auto\" or \"00A20F12\" or \"/path/to/facter.json\"";
@@ -63,8 +69,8 @@ in
     lib.mkMerge [
       {
         warnings =
-          lib.optional (!(builtins.elem "microcode.amd_sha_check=off" config.boot.kernelParams))
-            "ucodenix: Kernel microcode checksum verification is active. This may prevent microcode from loading. Consider disabling it by setting `boot.kernelParams = [ \"microcode.amd_sha_check=off\" ];` in your configuration.";
+          lib.optional (cfg.enableShaCheckWarning && !(builtins.elem "microcode.amd_sha_check=off" config.boot.kernelParams))
+            "ucodenix: Kernel microcode checksum verification is active. This may prevent microcode from loading. Consider disabling it by setting `boot.kernelParams = [ \"microcode.amd_sha_check=off\" ];` in your configuration or setting `services.ucodenix.enableShaCheckWarning = false;`.";
 
         nixpkgs.overlays = [
           (final: prev: {
